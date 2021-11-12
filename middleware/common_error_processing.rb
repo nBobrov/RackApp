@@ -8,7 +8,8 @@ class CommonErrorProcessing
     if method_found?(env['REQUEST_PATH'])
       @app.call(env)
     else
-      page_not_found(env['REQUEST_PATH'])
+      response = Rack::Response.new(["Page #{env['REQUEST_PATH']} not found!\n"], PAGE_NOT_FOUND_CODE,  { 'Content-Type' => 'text/plain' })
+      response.finish
     end
   end
 
@@ -16,9 +17,5 @@ class CommonErrorProcessing
 
   def method_found?(path)
     ACCESS_METHODS.include?(path)
-  end
-
-  def page_not_found(path)
-    [PAGE_NOT_FOUND_CODE, { 'Content-Type' => 'text/plain' }, ["Page #{path} not found!\n"]]
   end
 end

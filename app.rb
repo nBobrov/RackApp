@@ -2,22 +2,25 @@ class App
 
   def call(env)
     request = Rack::Request.new(env)
-    time = GetTime.new(request.params['format'])
 
-    if time.valid_format?
-      [SUCCESS_CODE, headers, ["#{time.now}\n"]]
+    result = GetTime.new(request.params['format']).call
+
+    if result.success?
+      http_code = SUCCESS_CODE
+      body = result.time_sting
     else
-      bad_request(time.unknown_format)
+      http_code = BAD_REQUEST_CODE
+      body = "Unknown time format [#{result.invalid_string}]"
     end
+
+    response(http_code, ["#{body}\n"])
   end
 
   private
 
-  def headers
-    { 'Content-Type' => 'text/plain' }
+  def response(http_code, body)
+    response = Rack::Response.new(body, http_code,  { 'Content-Type' => 'text/plain' })
+    response.finish
   end
 
-  def bad_request(unknown_format)
-    [BAD_REQUEST_CODE, headers, ["Unknown time format [#{unknown_format.join(', ')}]\n"]]
-  end
 end
